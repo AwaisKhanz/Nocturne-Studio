@@ -4,10 +4,8 @@ import React, { createContext, useCallback, useContext, useMemo, useState } from
 
 export type ApiKeys = {
   openai?: string;
-  anthropic?: string;
-  midjourney?: string;
-  replicate?: string;
   google?: string;
+  xai?: string;
 };
 
 export type ImageItem = {
@@ -51,7 +49,12 @@ export function Providers({ children }: { children: React.ReactNode }) {
     try {
       const raw = localStorage.getItem("visiongrid.apiKeys");
       if (raw) {
-        setKeys(JSON.parse(raw) as ApiKeys);
+        const parsed = JSON.parse(raw) as Record<string, unknown>;
+        setKeys({
+          openai: typeof parsed.openai === "string" ? parsed.openai : "",
+          google: typeof parsed.google === "string" ? parsed.google : "",
+          xai: typeof parsed.xai === "string" ? parsed.xai : "",
+        });
       }
     } catch {
       setKeys({});

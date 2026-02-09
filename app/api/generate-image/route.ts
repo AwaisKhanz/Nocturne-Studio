@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-type Provider = "openai" | "google";
+type Provider = "openai" | "google" | "xai";
 
 type ModelConfig = {
   provider: Provider;
@@ -13,9 +13,9 @@ const MODEL_MAP: Record<string, ModelConfig> = {
     provider: "google",
     apiModel: "gemini-2.5-flash-image",
   },
-  "gemini-3-pro-image-preview": {
-    provider: "google",
-    apiModel: "gemini-3-pro-image-preview",
+  "grok-imagine-image": {
+    provider: "xai",
+    apiModel: "grok-imagine-image",
   },
 };
 
@@ -139,6 +139,58 @@ async function generateWithGemini({
   };
 }
 
+async function generateWithXAI({
+  prompt,
+  apiKey,
+  model,
+}: {
+  prompt: string;
+  apiKey: string;
+  model: string;
+}): Promise<ImagePayload> {
+  const response = await fetch("https://api.x.ai/v1/images/generations", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      model,
+      prompt,
+      n: 1,
+      size: "1024x1024",
+      response_format: "b64_json",
+    }),
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    const error = new Error(errorText || "Grok image generation failed.") as Error & {
+      status?: number;
+    };
+    error.status = response.status;
+    throw error;
+  }
+
+  const data = (await response.json()) as {
+    data?: { b64_json?: string; url?: string }[];
+  };
+  const item = data.data?.[0];
+  const src = item?.b64_json
+    ? `data:image/png;base64,${item.b64_json}`
+    : item?.url || "";
+
+  if (!src) {
+    throw new Error("Grok did not return image data.");
+  }
+
+  return {
+    id: `${Date.now()}-0`,
+    src,
+    alt: `${prompt} image`,
+  };
+}
+
 export async function POST(request: Request) {
   try {
     const body = (await request.json()) as {
@@ -173,7 +225,9 @@ export async function POST(request: Request) {
     const image =
       config.provider === "openai"
         ? await generateWithOpenAI({ prompt, apiKey, model: config.apiModel })
-        : await generateWithGemini({ prompt, apiKey, model: config.apiModel });
+        : config.provider === "xai"
+          ? await generateWithXAI({ prompt, apiKey, model: config.apiModel })
+          : await generateWithGemini({ prompt, apiKey, model: config.apiModel });
 
     return NextResponse.json({ model: modelId, image });
   } catch (error) {

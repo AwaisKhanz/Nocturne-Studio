@@ -1,12 +1,14 @@
 import type { Metadata } from "next";
-import { IBM_Plex_Mono, Space_Grotesk } from "next/font/google";
+import Script from "next/script";
+import { IBM_Plex_Mono, Sora } from "next/font/google";
 
 import "./globals.css";
 import { Providers } from "./providers";
 
-const spaceGrotesk = Space_Grotesk({
-  variable: "--font-space-grotesk",
+const sora = Sora({
+  variable: "--font-sora",
   subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700"],
 });
 
 const plexMono = IBM_Plex_Mono({
@@ -28,9 +30,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body
-        className={`${spaceGrotesk.variable} ${plexMono.variable} antialiased`}
-      >
+      <body className={`${sora.variable} ${plexMono.variable} antialiased`}>
+        <Script id="theme-init" strategy="beforeInteractive">
+          {`(function(){try{var stored=localStorage.getItem('visiongrid.theme');var next=(stored==='light'||stored==='dark')?stored:(window.matchMedia&&window.matchMedia('(prefers-color-scheme: light)').matches?'light':'dark');var root=document.documentElement;root.dataset.theme=next;root.dataset.intro='true';root.style.colorScheme=next;root.classList.add('theme-loaded');}catch(e){}})();`}
+        </Script>
         <Providers>{children}</Providers>
       </body>
     </html>
