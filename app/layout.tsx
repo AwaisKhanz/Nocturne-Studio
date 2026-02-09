@@ -29,7 +29,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning data-intro="true">
       <body className={`${sora.variable} ${plexMono.variable} antialiased`}>
         <Script id="theme-init" strategy="beforeInteractive">
           {`(function(){try{var stored=localStorage.getItem('visiongrid.theme');var next=(stored==='light'||stored==='dark')?stored:(window.matchMedia&&window.matchMedia('(prefers-color-scheme: light)').matches?'light':'dark');var root=document.documentElement;root.dataset.theme=next;root.dataset.intro='true';root.style.colorScheme=next;root.classList.add('theme-loaded');}catch(e){}})();`}

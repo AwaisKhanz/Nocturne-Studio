@@ -181,6 +181,11 @@ export default function Home() {
     return () => window.clearTimeout(timer);
   }, []);
 
+  React.useEffect(() => {
+    if (showIntro) return;
+    document.documentElement.dataset.intro = "false";
+  }, [showIntro]);
+
   const promptRef = useRef<HTMLTextAreaElement>(null);
   useAutosizeTextArea(promptRef, prompt);
 
@@ -474,11 +479,18 @@ export default function Home() {
         onComplete={() => setShowIntro(false)}
         onSkip={() => setShowIntro(false)}
       />
-      <div className="pointer-events-none absolute inset-0">
-        <BackgroundFx active={fxEnabled} mode={fxMode} theme={theme} />
-      </div>
-      <div className="pointer-events-none absolute inset-0 canvas-grid opacity-60" />
-      <div className="relative z-10 flex h-full flex-col lg:flex-row">
+      <div
+        className="app-shell relative h-full w-full transition-opacity duration-500"
+        style={{
+          opacity: showIntro ? 0 : 1,
+          pointerEvents: showIntro ? "none" : "auto",
+        }}
+      >
+        <div className="pointer-events-none absolute inset-0">
+          <BackgroundFx active={fxEnabled} mode={fxMode} theme={theme} />
+        </div>
+        <div className="pointer-events-none absolute inset-0 canvas-grid opacity-60" />
+        <div className="relative z-10 flex h-full flex-col lg:flex-row">
         <MobileHeader
           theme={theme}
           onOpenSidebar={() => setIsSidebarOpen(true)}
@@ -552,6 +564,7 @@ export default function Home() {
         </main>
 
         <ImageViewer image={viewerTarget} onClose={() => setViewerTarget(null)} />
+        </div>
       </div>
     </div>
   );

@@ -17,7 +17,7 @@ const SelectTrigger = React.forwardRef<
   <SelectPrimitive.Trigger
     ref={ref}
     className={cn(
-      "flex h-10 w-full items-center justify-between rounded-lg px-3 py-2 text-sm theme-field focus:outline-none focus:ring-2 theme-ring",
+      "flex h-10 w-full items-center justify-between rounded-lg px-3 py-2 text-sm theme-field focus:outline-none focus:ring-2 theme-ring theme-transition-colors",
       className
     )}
     {...props}
@@ -38,7 +38,7 @@ const SelectContent = React.forwardRef<
     <SelectPrimitive.Content
       ref={ref}
       className={cn(
-        "relative z-50 min-w-[8rem] overflow-hidden rounded-lg border theme-border theme-overlay-strong theme-text-primary theme-shadow-strong backdrop-blur-xl",
+        "relative z-50 min-w-[8rem] overflow-hidden rounded-lg border theme-border theme-overlay-strong theme-text-primary theme-shadow-strong backdrop-blur-xl theme-transition-colors",
         className
       )}
       {...props}
@@ -70,7 +70,7 @@ const SelectItem = React.forwardRef<
   <SelectPrimitive.Item
     ref={ref}
     className={cn(
-      "relative flex w-full cursor-default select-none items-center rounded-md px-2 py-2 text-sm outline-none focus:bg-[color:var(--surface-ghost)] data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
+      "theme-interactive relative flex w-full cursor-default select-none items-center rounded-md px-2 py-2 text-sm outline-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50 theme-transition-colors",
       className
     )}
     {...props}
