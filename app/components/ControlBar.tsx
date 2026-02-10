@@ -95,76 +95,71 @@ export function ControlBar({
             </Button>
           </div>
         ) : (
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:gap-2.5">
-            {/* Top row on mobile: Model selector and quantity controls */}
-            <div className="flex items-center gap-2.5">
-              {/* Compact Model Selector - Icon Only */}
-              <Select value={model} onValueChange={onModelChange}>
-                <SelectTrigger className="h-12 w-12 px-0 justify-center border-0 theme-surface-ghost shrink-0">
-                  <SelectValue>
-                    <div className="flex items-center justify-center">
-                      {selectedModel && modelIcons[selectedModel.id]}
+          <div className="flex flex-wrap items-center gap-2">
+            {/* Compact Model Selector - Icon Only */}
+            <Select value={model} onValueChange={onModelChange}>
+              <SelectTrigger className="h-12 w-12 px-0 justify-center border-0 theme-surface-ghost shrink-0">
+                <SelectValue>
+                  <div className="flex items-center justify-center">
+                    {selectedModel && modelIcons[selectedModel.id]}
+                  </div>
+                </SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                {models.map((option) => (
+                  <SelectItem key={option.id} value={option.id}>
+                    <div className="flex items-center gap-2.5">
+                      {modelIcons[option.id] ?? <Sparkles className="h-4 w-4" />}
+                      <span>{option.label}</span>
                     </div>
-                  </SelectValue>
-                </SelectTrigger>
-                <SelectContent>
-                  {models.map((option) => (
-                    <SelectItem key={option.id} value={option.id}>
-                      <div className="flex items-center gap-2.5">
-                        {modelIcons[option.id] ?? <Sparkles className="h-4 w-4" />}
-                        <span>{option.label}</span>
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
 
-              {/* Compact Quantity Controls */}
-              <div className="flex items-center gap-1 rounded-lg theme-surface-ghost px-2 h-12 shrink-0">
-                <button
-                  onClick={onDecrement}
-                  disabled={count <= minCount}
-                  className="flex h-7 w-7 items-center justify-center rounded-md theme-text-muted transition hover:theme-text-primary hover:bg-[color:var(--surface-hover)] disabled:opacity-40 disabled:cursor-not-allowed"
-                  aria-label="Decrease quantity"
-                >
-                  <Minus className="h-3.5 w-3.5" />
-                </button>
-                <span className="min-w-[1.5rem] text-center text-sm font-semibold theme-text-primary">
-                  {count}
-                </span>
-                <button
-                  onClick={onIncrement}
-                  disabled={count >= maxCount}
-                  className="flex h-7 w-7 items-center justify-center rounded-md theme-text-muted transition hover:theme-text-primary hover:bg-[color:var(--surface-hover)] disabled:opacity-40 disabled:cursor-not-allowed"
-                  aria-label="Increase quantity"
-                >
-                  <Plus className="h-3.5 w-3.5" />
-                </button>
-              </div>
-            </div>
-
-            {/* Bottom row on mobile: Prompt input and Generate button */}
-            <div className="flex items-start gap-2.5 flex-1 w-full sm:w-auto">
-              {/* Prompt Input */}
-              <Textarea
-                ref={promptRef}
-                value={prompt}
-                onChange={(event) => onPromptChange(event.target.value)}
-                className="min-h-[48px] h-12 max-h-32 flex-1 resize-none text-sm py-3"
-                placeholder="Describe the image you want to create..."
-              />
-
-              {/* Generate Button */}
-              <Button
-                onClick={onGenerate}
-                className={cn("pulse-glow h-12 px-6 font-semibold shrink-0", isGenerating && "opacity-70")}
-                size="default"
-                disabled={isGenerating}
+            {/* Compact Quantity Controls */}
+            <div className="flex items-center gap-1 rounded-lg theme-surface-ghost px-2 h-12 shrink-0">
+              <button
+                onClick={onDecrement}
+                disabled={count <= minCount}
+                className="flex h-7 w-7 items-center justify-center rounded-md theme-text-muted transition hover:theme-text-primary hover:bg-[color:var(--surface-hover)] disabled:opacity-40 disabled:cursor-not-allowed"
+                aria-label="Decrease quantity"
               >
-                <Wand2 className="h-4 w-4" />
-                Generate
-              </Button>
+                <Minus className="h-3.5 w-3.5" />
+              </button>
+              <span className="min-w-[1.5rem] text-center text-sm font-semibold theme-text-primary">
+                {count}
+              </span>
+              <button
+                onClick={onIncrement}
+                disabled={count >= maxCount}
+                className="flex h-7 w-7 items-center justify-center rounded-md theme-text-muted transition hover:theme-text-primary hover:bg-[color:var(--surface-hover)] disabled:opacity-40 disabled:cursor-not-allowed"
+                aria-label="Increase quantity"
+              >
+                <Plus className="h-3.5 w-3.5" />
+              </button>
             </div>
+
+            {/* Prompt Input - takes remaining space */}
+            <Textarea
+              ref={promptRef}
+              value={prompt}
+              onChange={(event) => onPromptChange(event.target.value)}
+              className="min-h-[48px] h-12 max-h-32 flex-1 min-w-[200px] resize-none text-sm py-3"
+              placeholder="Describe the image you want to create..."
+            />
+
+            {/* Generate Button */}
+            <Button
+              onClick={onGenerate}
+              className={cn("pulse-glow h-12 px-6 font-semibold shrink-0", isGenerating && "opacity-70")}
+              size="default"
+              disabled={isGenerating}
+            >
+              <Wand2 className="h-4 w-4" />
+              <span className="hidden sm:inline">Generate</span>
+              <span className="sm:hidden">Go</span>
+            </Button>
           </div>
         )}
       </div>
