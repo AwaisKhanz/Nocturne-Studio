@@ -131,7 +131,11 @@ async function generateWithGemini({
     throw new Error("Gemini did not return image data.");
   }
 
-  const mimeType = inline.mimeType || inline.mime_type || "image/png";
+  const mimeType = 
+    ('mimeType' in inline ? inline.mimeType : undefined) || 
+    ('mime_type' in inline ? inline.mime_type : undefined) || 
+    "image/png";
+  
   return {
     id: `${Date.now()}-0`,
     src: `data:${mimeType};base64,${inline.data}`,
