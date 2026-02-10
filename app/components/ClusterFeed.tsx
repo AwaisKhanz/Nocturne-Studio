@@ -26,7 +26,7 @@ export function ClusterFeed({
   onOpenVault: () => void;
   hasSupportedKey: boolean;
   hasAnyKey: boolean;
-  feedRef: React.RefObject<HTMLDivElement>;
+  feedRef: React.RefObject<HTMLDivElement | null>;
 }) {
   return (
     <div

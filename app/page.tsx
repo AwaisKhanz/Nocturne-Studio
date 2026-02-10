@@ -47,7 +47,7 @@ type DraftKeys = {
   xai: string;
 };
 
-function useAutosizeTextArea(ref: React.RefObject<HTMLTextAreaElement>, value: string) {
+function useAutosizeTextArea(ref: React.RefObject<HTMLTextAreaElement | null>, value: string) {
   React.useEffect(() => {
     const el = ref.current;
     if (!el) return;
@@ -434,7 +434,7 @@ export default function Home() {
           ...cluster,
           images: cluster.images.map((image, imageIndex) =>
             imageIndex === index
-              ? { ...data.image, status: "ready" }
+              ? { ...image, ...data.image, status: "ready" as const }
               : image
           ),
         }));

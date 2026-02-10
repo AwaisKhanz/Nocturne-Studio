@@ -54,7 +54,7 @@ export function ControlBar({
   onIncrement: () => void;
   prompt: string;
   onPromptChange: (value: string) => void;
-  promptRef: React.RefObject<HTMLTextAreaElement>;
+  promptRef: React.RefObject<HTMLTextAreaElement | null>;
   onGenerate: () => void;
   isGenerating: boolean;
   maxWidth: number;

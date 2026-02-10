@@ -10,6 +10,8 @@ const buttonVariants = cva(
       variant: {
         default:
           "theme-accent shadow-[0_0_20px_var(--glow-indigo)] hover:shadow-[0_0_30px_var(--glow-purple)]",
+        destructive:
+          "bg-red-600 text-white hover:bg-red-700 shadow-[0_0_20px_rgba(220,38,38,0.3)] hover:shadow-[0_0_30px_rgba(220,38,38,0.5)]",
         ghost:
           "bg-transparent theme-text-muted hover:bg-[color:var(--surface-ghost)]",
         outline:
