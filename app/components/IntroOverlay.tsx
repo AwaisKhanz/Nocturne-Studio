@@ -1,6 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
+import { APP_NAME, APP_TAGLINE, APP_TITLE } from "@/app/config";
 
 export function IntroOverlay({
   isVisible,
@@ -34,7 +35,7 @@ export function IntroOverlay({
               transition={{ delay: 0.35 }}
               className="text-[10px] uppercase tracking-[0.5em] theme-text-faint"
             >
-              VisionGrid
+              {APP_NAME}
             </motion.div>
             <motion.h1
               initial={{ letterSpacing: "0.12em" }}
@@ -42,7 +43,7 @@ export function IntroOverlay({
               transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
               className="text-4xl font-semibold theme-text-primary sm:text-6xl"
             >
-              Midnight Nebula
+              {APP_TITLE}
             </motion.h1>
             <motion.div
               initial={{ width: 0, opacity: 0 }}
@@ -57,7 +58,7 @@ export function IntroOverlay({
               transition={{ delay: 0.6 }}
               className="text-sm theme-text-subtle"
             >
-              Spatial AI Art Studio
+              {APP_TAGLINE}
             </motion.p>
           </motion.div>
 

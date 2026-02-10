@@ -10,6 +10,7 @@ import { ClusterFeed } from "./components/ClusterFeed";
 import { ControlBar } from "./components/ControlBar";
 import { ImageViewer } from "./components/ImageViewer";
 import { IntroOverlay } from "./components/IntroOverlay";
+import { ConfirmDialog } from "./components/ConfirmDialog";
 
 type ModelOption = {
   id: string;
@@ -134,7 +135,16 @@ function parseErrorMessage(raw: string) {
 
 export default function Home() {
   const { keys, setKey } = useApiKeys();
-  const { clusters, setClusters } = useCanvas();
+  const {
+    sessions,
+    activeSessionId,
+    activeSession,
+    setActiveSessionId,
+    createSession,
+    updateSession,
+    renameSession,
+    deleteSession,
+  } = useCanvas();
   const [model, setModel] = useState<string>(MODEL_OPTIONS[0].id);
   const [count, setCount] = useState<number>(4);
   const MIN_COUNT = 1;
@@ -162,8 +172,9 @@ export default function Home() {
   const [isKeyVaultOpen, setIsKeyVaultOpen] = useState(false);
   const [theme, setTheme] = useState<"dark" | "light">("dark");
   const [fxEnabled, setFxEnabled] = useState(true);
-  const [fxMode, setFxMode] = useState<BackgroundFxMode>("snow");
+  const fxMode: BackgroundFxMode = "snow";
   const [showIntro, setShowIntro] = useState(true);
+  const [deletePromptTarget, setDeletePromptTarget] = useState<Cluster | null>(null);
   const feedRef = useRef<HTMLDivElement>(null);
 
   // Sync theme state with DOM after hydration
@@ -325,10 +336,10 @@ export default function Home() {
     setModel(availableModels[0].id);
   }, [availableModels, model]);
 
-  const filteredClusters = useMemo(
-    () => [...clusters].sort((a, b) => a.createdAt - b.createdAt),
-    [clusters]
-  );
+  const filteredClusters = useMemo(() => {
+    const list = activeSession?.clusters ?? [];
+    return [...list].sort((a, b) => a.createdAt - b.createdAt);
+  }, [activeSession]);
 
   const handleGenerate = useCallback(async () => {
     if (!prompt.trim()) return;
@@ -353,7 +364,16 @@ export default function Home() {
       status: "loading",
     };
 
-    setClusters((prev) => [...prev, initialCluster]);
+    let sessionId = activeSession?.id || activeSessionId;
+    if (!sessionId) {
+      sessionId = createSession([initialCluster]);
+    } else {
+      updateSession(sessionId, (session) => ({
+        ...session,
+        clusters: [...session.clusters, initialCluster],
+      }));
+    }
+
     setIsGenerating(true);
 
     let completed = 0;
@@ -361,11 +381,12 @@ export default function Home() {
     let firstError = "";
 
     const updateCluster = (updater: (cluster: Cluster) => Cluster) => {
-      setClusters((prev) =>
-        prev.map((cluster) =>
+      updateSession(sessionId, (session) => ({
+        ...session,
+        clusters: session.clusters.map((cluster) =>
           cluster.id === clusterId ? updater(cluster) : cluster
-        )
-      );
+        ),
+      }));
     };
 
     const markComplete = () => {
@@ -433,7 +454,6 @@ export default function Home() {
               : image
           ),
         }));
-        console.error(error);
       } finally {
         markComplete();
       }
@@ -445,10 +465,54 @@ export default function Home() {
     hasSelectedKey,
     model,
     prompt,
-    setClusters,
+    activeSession,
+    activeSessionId,
+    createSession,
+    updateSession,
     setIsKeyVaultOpen,
     selectedApiKey,
   ]);
+
+  const handleRequestDeleteCluster = useCallback(
+    (clusterId: string) => {
+      const target = activeSession?.clusters.find(
+        (cluster) => cluster.id === clusterId
+      );
+      if (!target) return;
+      setDeletePromptTarget(target);
+    },
+    [activeSession]
+  );
+
+  const handleConfirmDeleteCluster = useCallback(() => {
+    if (!deletePromptTarget) return;
+    const sessionId = activeSession?.id;
+    if (!sessionId) {
+      setDeletePromptTarget(null);
+      return;
+    }
+    updateSession(sessionId, (session) => ({
+      ...session,
+      clusters: session.clusters.filter(
+        (cluster) => cluster.id !== deletePromptTarget.id
+      ),
+    }));
+    setDeletePromptTarget(null);
+  }, [activeSession, deletePromptTarget, updateSession]);
+
+  const handleRenameSession = useCallback(
+    (id: string, title: string) => {
+      renameSession(id, title);
+    },
+    [renameSession]
+  );
+
+  const handleDeleteSession = useCallback(
+    (id: string) => {
+      deleteSession(id);
+    },
+    [deleteSession]
+  );
 
   const handleDownload = useCallback(async (image: ImageItem) => {
     const link = document.createElement("a");
@@ -473,7 +537,8 @@ export default function Home() {
   }, [filteredClusters.length, isGenerating]);
 
   return (
-    <div className="relative h-[100dvh] w-screen overflow-hidden theme-text-primary">
+    <>
+      <div className="relative h-[100dvh] w-screen overflow-hidden theme-text-primary">
       <IntroOverlay
         isVisible={showIntro}
         onComplete={() => setShowIntro(false)}
@@ -518,16 +583,20 @@ export default function Home() {
           keyErrors={keyErrors}
           onSaveKeys={handleSaveKeys}
           onClearKeys={handleClearKeys}
-          hasSupportedKey={hasSupportedKey}
-          hasAnyKey={hasAnyKey}
-          model={model}
-          onModelChange={setModel}
-          displayModels={displayModels}
-          comingSoonModels={comingSoonModels}
           fxEnabled={fxEnabled}
           onToggleFx={() => setFxEnabled((prev) => !prev)}
-          fxMode={fxMode}
-          onFxModeChange={setFxMode}
+          sessions={sessions}
+          activeSessionId={activeSessionId}
+          onSelectSession={(id) => {
+            setActiveSessionId(id);
+            setIsSidebarOpen(false);
+          }}
+          onCreateSession={() => {
+            createSession();
+            setIsSidebarOpen(false);
+          }}
+          onRenameSession={handleRenameSession}
+          onDeleteSession={handleDeleteSession}
         />
 
         <main className="relative flex-1 overflow-hidden">
@@ -536,6 +605,7 @@ export default function Home() {
             isGenerating={isGenerating}
             onOpenViewer={handleOpenViewer}
             onDownload={handleDownload}
+            onDeleteCluster={handleRequestDeleteCluster}
             onOpenVault={() => setIsKeyVaultOpen(true)}
             hasSupportedKey={hasSupportedKey}
             hasAnyKey={hasAnyKey}
@@ -567,5 +637,16 @@ export default function Home() {
         </div>
       </div>
     </div>
+      <ConfirmDialog
+        open={Boolean(deletePromptTarget)}
+        title="Delete prompt?"
+        description="This will remove the prompt and its generated images from this session."
+        confirmLabel="Delete"
+        cancelLabel="Cancel"
+        isDestructive
+        onConfirm={handleConfirmDeleteCluster}
+        onCancel={() => setDeletePromptTarget(null)}
+      />
+    </>
   );
 }

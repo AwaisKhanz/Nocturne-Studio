@@ -1,7 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import { Download } from "lucide-react";
+import { Download, Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -12,6 +12,7 @@ export function ClusterFeed({
   isGenerating,
   onOpenViewer,
   onDownload,
+  onDeleteCluster,
   onOpenVault,
   hasSupportedKey,
   hasAnyKey,
@@ -21,6 +22,7 @@ export function ClusterFeed({
   isGenerating: boolean;
   onOpenViewer: (image: ImageItem) => void;
   onDownload: (image: ImageItem) => void;
+  onDeleteCluster: (clusterId: string) => void;
   onOpenVault: () => void;
   hasSupportedKey: boolean;
   hasAnyKey: boolean;
@@ -78,13 +80,23 @@ export function ClusterFeed({
                       {cluster.model}
                     </p>
                   </div>
-                  <span className="rounded-full theme-chip px-3 py-1 text-[10px] uppercase tracking-[0.2em] theme-text-subtle">
-                    {cluster.status === "loading"
-                      ? `Generating ${completedCount}/${images.length}`
-                      : cluster.status === "error"
-                        ? "Error"
-                        : "Ready"}
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <span className="rounded-full theme-chip px-3 py-1 text-[10px] uppercase tracking-[0.2em] theme-text-subtle">
+                      {cluster.status === "loading"
+                        ? `Generating ${completedCount}/${images.length}`
+                        : cluster.status === "error"
+                          ? "Error"
+                          : "Ready"}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => onDeleteCluster(cluster.id)}
+                      className="flex h-8 w-8 items-center justify-center rounded-full theme-surface-ghost theme-text-subtle transition hover:text-[color:var(--foreground)]"
+                      aria-label="Delete prompt"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </div>
                 </div>
                 {cluster.status === "error" && (
                   <div className="mb-4 rounded-2xl px-4 py-3 text-xs theme-alert-error">

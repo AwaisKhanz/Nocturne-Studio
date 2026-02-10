@@ -15,10 +15,10 @@ type Particle = {
 
 function createParticle(width: number, height: number, mode: BackgroundFxMode): Particle {
   const base =
-    mode === "snow" ? 0.4 : mode === "stars" ? 0.3 : mode === "rain" ? 0.45 : 0.6;
+    mode === "snow" ? 0.55 : mode === "stars" ? 0.3 : mode === "rain" ? 0.45 : 0.6;
   const r =
     mode === "snow"
-      ? Math.random() * 2 + 0.6
+      ? Math.random() * 2.2 + 0.8
       : mode === "stars"
         ? Math.random() * 1.6 + 0.4
         : mode === "rain"
@@ -26,7 +26,7 @@ function createParticle(width: number, height: number, mode: BackgroundFxMode): 
           : Math.random() * 2 + 0.4;
   const speed =
     mode === "snow"
-      ? Math.random() * 0.6 + 0.2
+      ? Math.random() * 0.6 + 0.3
       : mode === "rain"
         ? Math.random() * 1.2 + 1.4
         : mode === "stars"
@@ -38,7 +38,7 @@ function createParticle(width: number, height: number, mode: BackgroundFxMode): 
     r,
     vx:
       mode === "snow"
-        ? (Math.random() - 0.5) * 0.25
+        ? (Math.random() - 0.5) * 0.35
         : mode === "rain"
           ? (Math.random() - 0.5) * 0.2
           : mode === "stars"
@@ -88,7 +88,7 @@ export function BackgroundFx({
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       const density =
         mode === "snow"
-          ? 0.00012
+          ? 0.0002
           : mode === "stars"
             ? 0.00008
             : mode === "rain"

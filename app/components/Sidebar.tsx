@@ -1,6 +1,21 @@
 "use client";
 
-import { Eye, EyeOff, Layers, Moon, Settings, ShieldCheck, Sun, Trash2 } from "lucide-react";
+import React from "react";
+import { createPortal } from "react-dom";
+import {
+  Eye,
+  EyeOff,
+  MessageSquare,
+  Moon,
+  MoreHorizontal,
+  MoreVertical,
+  Pencil,
+  Plus,
+  Settings,
+  ShieldCheck,
+  Sun,
+  Trash2,
+} from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -14,30 +29,15 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectSeparator,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { cn } from "@/lib/utils";
-import type { ApiKeys } from "@/app/providers";
-import type { BackgroundFxMode } from "@/app/background-fx";
+import { ConfirmDialog } from "@/app/components/ConfirmDialog";
+import { APP_NAME, APP_TITLE } from "@/app/config";
+import type { Session } from "@/app/providers";
 
 type DraftKeys = {
   openai: string;
   google: string;
   xai: string;
-};
-
-type ModelOption = {
-  id: string;
-  label: string;
-  providerKey: keyof ApiKeys;
-  status: "live" | "coming";
-  requires?: (keyof ApiKeys)[];
 };
 
 export function Sidebar({
@@ -55,16 +55,14 @@ export function Sidebar({
   keyErrors,
   onSaveKeys,
   onClearKeys,
-  hasSupportedKey,
-  hasAnyKey,
-  model,
-  onModelChange,
-  displayModels,
-  comingSoonModels,
   fxEnabled,
   onToggleFx,
-  fxMode,
-  onFxModeChange,
+  sessions,
+  activeSessionId,
+  onSelectSession,
+  onCreateSession,
+  onRenameSession,
+  onDeleteSession,
 }: {
   className?: string;
   isOpen: boolean;
@@ -82,24 +80,74 @@ export function Sidebar({
   keyErrors: Record<keyof DraftKeys, string>;
   onSaveKeys: () => void;
   onClearKeys: () => void;
-  hasSupportedKey: boolean;
-  hasAnyKey: boolean;
-  model: string;
-  onModelChange: (value: string) => void;
-  displayModels: ModelOption[];
-  comingSoonModels: ModelOption[];
   fxEnabled: boolean;
   onToggleFx: () => void;
-  fxMode: BackgroundFxMode;
-  onFxModeChange: (value: BackgroundFxMode) => void;
+  sessions: Session[];
+  activeSessionId: string;
+  onSelectSession: (id: string) => void;
+  onCreateSession: () => void;
+  onRenameSession: (id: string, title: string) => void;
+  onDeleteSession: (id: string) => void;
 }) {
   const sidebarSectionClass =
-    "space-y-3 rounded-2xl border theme-border theme-surface theme-shadow-soft p-4 theme-card-hover";
+    "space-y-3 ";
+  const sidebarListClass = "space-y-2";
+  const [renameTarget, setRenameTarget] = React.useState<Session | null>(null);
+  const [renameValue, setRenameValue] = React.useState("");
+  const [deleteTarget, setDeleteTarget] = React.useState<Session | null>(null);
+  const [contextMenu, setContextMenu] = React.useState<{
+    sessionId: string;
+    x: number;
+    y: number;
+  } | null>(null);
+
+  const handleStartRename = (session: Session) => {
+    setRenameTarget(session);
+    setRenameValue(session.title);
+  };
+
+  const handleConfirmRename = () => {
+    if (!renameTarget) return;
+    const next = renameValue.trim();
+    if (!next) return;
+    onRenameSession(renameTarget.id, next);
+    setRenameTarget(null);
+  };
+
+  const handleDeleteSession = (session: Session) => {
+    setDeleteTarget(session);
+  };
+
+  const menuStyle = React.useMemo(() => {
+    if (!contextMenu) return undefined;
+    if (typeof window === "undefined") {
+      return { left: contextMenu.x, top: contextMenu.y };
+    }
+    const menuWidth = 190;
+    const menuHeight = 96;
+    const left = Math.min(contextMenu.x, window.innerWidth - menuWidth - 12);
+    const top = Math.min(contextMenu.y, window.innerHeight - menuHeight - 12);
+    return { left, top };
+  }, [contextMenu]);
+
+  React.useEffect(() => {
+    if (!contextMenu) return;
+    const handleKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setContextMenu(null);
+    };
+    const handleScroll = () => setContextMenu(null);
+    window.addEventListener("keydown", handleKey);
+    window.addEventListener("scroll", handleScroll, true);
+    return () => {
+      window.removeEventListener("keydown", handleKey);
+      window.removeEventListener("scroll", handleScroll, true);
+    };
+  }, [contextMenu]);
 
   return (
     <aside
       className={cn(
-        "fixed inset-y-0 left-0 z-50 flex w-[82vw] max-w-sm translate-x-[-100%] flex-col gap-6 overflow-y-auto border-r theme-divider theme-sidebar px-5 py-7 backdrop-blur-lg transition-transform lg:static lg:z-auto lg:w-80 lg:translate-x-0 theme-edge-shadow",
+        "fixed glass-panel inset-y-0 left-0 z-50 flex w-[82vw] max-w-sm translate-x-[-100%] flex-col gap-6 overflow-y-auto border-r theme-divider  px-5 py-7  transition-transform lg:static lg:z-auto lg:w-80 lg:translate-x-0 ",
         isOpen && "translate-x-0",
         className
       )}
@@ -107,9 +155,9 @@ export function Sidebar({
       <div className="flex items-center justify-between lg:hidden">
         <div>
           <p className="text-xs uppercase tracking-[0.3em] theme-text-faint">
-            VisionGrid
+            {APP_NAME}
           </p>
-          <h1 className="text-xl font-semibold">Midnight Nebula</h1>
+          <h1 className="text-xl font-semibold">{APP_TITLE}</h1>
         </div>
         <button
           onClick={onClose}
@@ -123,10 +171,10 @@ export function Sidebar({
       <div className="flex items-center justify-between gap-4">
         <div className="hidden lg:block">
           <p className="text-[10px] uppercase tracking-[0.34em] theme-text-faint">
-            VisionGrid
+            {APP_NAME}
           </p>
           <h1 className="text-2xl font-semibold tracking-tight">
-            Midnight Nebula
+            {APP_TITLE}
           </h1>
         </div>
         <div className="flex items-center gap-2">
@@ -297,84 +345,185 @@ export function Sidebar({
       </div>
 
       <div className={sidebarSectionClass}>
-        <div className="flex items-center gap-2 text-sm font-medium theme-text-muted">
-          <Layers className="h-4 w-4" />
-          Active Models
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex items-center gap-2 text-sm font-medium theme-text-muted">
+            <MessageSquare className="h-4 w-4" />
+            Sessions
+          </div>
+          <Button variant="outline" size="sm" className="h-8 px-3" onClick={onCreateSession}>
+            <Plus className="h-3 w-3" />
+            New
+          </Button>
         </div>
-        {hasSupportedKey ? (
-          <Select value={model} onValueChange={onModelChange}>
-            <SelectTrigger className="h-11 w-full">
-              <SelectValue placeholder="Select model" />
-            </SelectTrigger>
-            <SelectContent>
-              {displayModels.map((option) => (
-                <SelectItem key={option.id} value={option.id}>
-                  {option.label}
-                </SelectItem>
-              ))}
-              {comingSoonModels.length > 0 && <SelectSeparator />}
-              {comingSoonModels.map((option) => (
-                <SelectItem key={option.id} value={option.id} disabled>
-                  {option.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        ) : (
-          <button
-            type="button"
-            onClick={() => setIsKeyVaultOpen(true)}
-            className="flex h-11 w-full items-center justify-between rounded-lg theme-surface-ghost px-3 text-sm theme-text-subtle"
-          >
-            {hasAnyKey ? "Add supported API key" : "Add API keys"}
-            <span className="theme-text-faint">›</span>
-          </button>
-        )}
-        <p className="text-xs theme-text-subtle">
-          {hasSupportedKey
-            ? "Models are filtered by active keys."
-            : hasAnyKey
-              ? "Add the missing keys to unlock models."
-              : "Add API keys in the vault to unlock models."}
-        </p>
+        <div className={sidebarListClass}>
+          {sessions.map((session) => {
+            const clusterList = Array.isArray(session.clusters) ? session.clusters : [];
+            const promptCount = clusterList.length;
+            const lastPrompt =
+              clusterList[clusterList.length - 1]?.prompt || "No prompts yet.";
+            return (
+              <div
+                key={session.id}
+                role="button"
+                tabIndex={0}
+                data-active={session.id === activeSessionId}
+                onClick={() => onSelectSession(session.id)}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter" || event.key === " ") {
+                    onSelectSession(session.id);
+                  }
+                }}
+                onContextMenu={(event) => {
+                  event.preventDefault();
+                  setContextMenu({
+                    sessionId: session.id,
+                    x: event.clientX,
+                    y: event.clientY,
+                  });
+                }}
+                className="theme-session-item group w-full rounded-xl px-3 py-2 text-left"
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-sm font-medium">{session.title}</span>
+                  <span className="text-[10px] uppercase tracking-[0.2em] theme-text-faint">
+                    {promptCount} {promptCount === 1 ? "prompt" : "prompts"}
+                  </span>
+                </div>
+                <div className="mt-1 flex items-center justify-between gap-2">
+                  <p className="truncate text-xs theme-text-subtle">{lastPrompt}</p>
+                  <button
+                    type="button"
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      const rect = event.currentTarget.getBoundingClientRect();
+                      setContextMenu({
+                        sessionId: session.id,
+                        x: rect.right - 8,
+                        y: rect.bottom + 6,
+                      });
+                    }}
+                    className="flex h-6 w-6 items-center justify-center rounded-full theme-surface-ghost theme-text-subtle opacity-100 transition md:opacity-0 md:group-hover:opacity-100 md:group-focus-within:opacity-100"
+                    aria-label="Session options"
+                  >
+                    <MoreVertical className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
       </div>
 
-      <div className={sidebarSectionClass}>
-        <div className="flex items-center gap-2 text-sm font-medium theme-text-muted">
-          <span
-            className="h-2 w-2 rounded-full"
-            style={{ backgroundImage: "var(--accent-gradient)" }}
-          />
-          Background FX
-        </div>
-        <div className="flex items-center justify-between gap-2">
+      {contextMenu &&
+        typeof document !== "undefined" &&
+        createPortal(
+          <div
+            className="fixed inset-0 z-[60]"
+            onClick={() => setContextMenu(null)}
+            onContextMenu={(event) => {
+              event.preventDefault();
+              setContextMenu(null);
+            }}
+          >
+            <div
+              className="absolute min-w-[180px] overflow-hidden rounded-xl border theme-border theme-overlay-strong p-1 theme-text-primary theme-shadow-strong backdrop-blur-xl"
+              style={menuStyle}
+            >
+              {(() => {
+                const session = sessions.find(
+                  (item) => item.id === contextMenu.sessionId
+                );
+                if (!session) return null;
+                return (
+                  <>
+                    <button
+                      type="button"
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        setContextMenu(null);
+                        handleStartRename(session);
+                      }}
+                      className="theme-interactive flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm"
+                    >
+                      <Pencil className="h-4 w-4" />
+                      Rename
+                    </button>
+                    <button
+                      type="button"
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        setContextMenu(null);
+                        handleDeleteSession(session);
+                      }}
+                      className="theme-interactive flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                      Delete
+                    </button>
+                  </>
+                );
+              })()}
+            </div>
+          </div>,
+          document.body
+        )}
+
+      <Dialog open={Boolean(renameTarget)} onOpenChange={(open) => !open && setRenameTarget(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Rename Session</DialogTitle>
+            <DialogDescription>Update the session title.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2">
+            <label className="text-sm theme-text-muted">Session name</label>
+            <Input
+              value={renameValue}
+              onChange={(event) => setRenameValue(event.target.value)}
+              placeholder="Session name"
+            />
+          </div>
+          <DialogFooter className="mt-6">
+            <Button variant="outline" onClick={() => setRenameTarget(null)}>
+              Cancel
+            </Button>
+            <Button onClick={handleConfirmRename}>Save</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <ConfirmDialog
+        open={Boolean(deleteTarget)}
+        title="Delete session?"
+        description={
+          deleteTarget
+            ? `This will remove "${deleteTarget.title}" and all its prompts.`
+            : undefined
+        }
+        confirmLabel="Delete"
+        cancelLabel="Cancel"
+        isDestructive
+        onConfirm={() => {
+          if (deleteTarget) {
+            onDeleteSession(deleteTarget.id);
+          }
+          setDeleteTarget(null);
+        }}
+        onCancel={() => setDeleteTarget(null)}
+      />
+
+      <div className={cn(sidebarSectionClass, "mt-auto w-full")}>
+        <div className="flex items-center gap-2 w-full">
           <Button
             variant="outline"
             size="sm"
             onClick={onToggleFx}
-            className="h-9 px-4"
+            className="h-9 px-4 w-full"
           >
-            {fxEnabled ? "Pause" : "Play"}
+            {fxEnabled ? "Stop snow" : "Let it snow"}
           </Button>
-          <Select
-            value={fxMode}
-            onValueChange={(value) => onFxModeChange(value as BackgroundFxMode)}
-          >
-            <SelectTrigger className="h-9 w-full max-w-[160px]">
-              <SelectValue placeholder="Effect" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="snow">Snow Drift</SelectItem>
-              <SelectItem value="ember">Ember Glow</SelectItem>
-              <SelectItem value="stars">Starfield</SelectItem>
-              <SelectItem value="rain">Rainfall</SelectItem>
-            </SelectContent>
-          </Select>
         </div>
-        <p className="text-xs theme-text-subtle">
-          Toggle the ambient animation for a more immersive canvas.
-        </p>
       </div>
+
     </aside>
   );
 }

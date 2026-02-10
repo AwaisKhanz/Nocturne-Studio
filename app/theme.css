@@ -1,5 +1,5 @@
 /*
- * VisionGrid Theme System
+ * Nocturne Theme System
  * =====================
  * A comprehensive design token system supporting both light and dark modes.
  *
@@ -663,13 +663,50 @@ html:not(.theme-loaded) body {
   .theme-interactive[data-state="checked"],
   .theme-interactive[aria-checked="true"],
   .theme-interactive[aria-selected="true"] {
+    background: var(--primary-soft);
     color: var(--primary-600);
+  }
+
+  .theme-selectable {
+    transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .theme-selectable:hover {
+    background: var(--surface-ghost);
+    border-color: var(--border-strong);
+  }
+
+  .theme-selectable[data-active="true"] {
+    background: var(--primary-soft);
+    border-color: var(--primary-600);
+    box-shadow: 0 0 0 1px var(--primary-soft-strong);
+  }
+
+  .theme-session-item {
+    transition: background-color 0.2s ease, color 0.2s ease;
+  }
+
+  .theme-session-item:hover {
+    background: var(--surface-ghost);
+  }
+
+  .theme-session-item[data-active="true"] {
+    background: var(--primary-soft);
+    color: var(--foreground);
   }
 
   .theme-thumb {
     box-shadow:
       0 0 0 2px var(--primary-soft),
       0 6px 16px var(--primary-glow-1);
+  }
+
+  .theme-button[data-state="active"],
+  .theme-button[data-active="true"],
+  .theme-button[aria-pressed="true"] {
+    background: var(--accent-gradient);
+    color: var(--accent-foreground);
+    box-shadow: 0 0 18px var(--primary-glow-1);
   }
 
 .glass-panel {

@@ -4,6 +4,7 @@ import { IBM_Plex_Mono, Sora } from "next/font/google";
 
 import "./globals.css";
 import { Providers } from "./providers";
+import { APP_DESCRIPTION, APP_TITLE } from "./config";
 
 const sora = Sora({
   variable: "--font-sora",
@@ -18,9 +19,8 @@ const plexMono = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "VisionGrid | Midnight Nebula Studio",
-  description:
-    "VisionGrid is a spatial AI art studio with a midnight nebula aesthetic.",
+  title: APP_TITLE,
+  description: APP_DESCRIPTION,
 };
 
 export default function RootLayout({

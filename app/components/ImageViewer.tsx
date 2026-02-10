@@ -22,9 +22,8 @@ export function ImageViewer({
   return (
     <Dialog open={!!image} onOpenChange={onClose}>
       <DialogContent className="w-[min(92vw,1100px)] max-w-none">
-        <DialogHeader>
+        <DialogHeader className="mb-4">
           <DialogTitle>Image Preview</DialogTitle>
-          <DialogDescription>Scroll to view the full image.</DialogDescription>
         </DialogHeader>
         {image && (
           <div className="max-h-[70vh] overflow-auto rounded-2xl border theme-border theme-overlay-soft p-2">

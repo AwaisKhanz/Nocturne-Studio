@@ -1,6 +1,7 @@
 "use client";
 
 import { Menu, Moon, Sun } from "lucide-react";
+import { APP_NAME, APP_TITLE } from "@/app/config";
 
 export function MobileHeader({
   theme,
@@ -15,10 +16,11 @@ export function MobileHeader({
     <div className="flex items-center justify-between border-b theme-divider theme-overlay px-5 py-4 backdrop-blur-2xl lg:hidden">
       <div>
         <p className="text-[10px] uppercase tracking-[0.3em] theme-text-faint">
-          VisionGrid
+          {APP_NAME}
         </p>
-        <h1 className="text-lg font-semibold">Midnight Nebula</h1>
+        <h1 className="text-lg font-semibold">{APP_TITLE}</h1>
       </div>
+      <div className="flex items-center gap-2">
       <button
         onClick={onOpenSidebar}
         className="flex h-10 w-10 items-center justify-center rounded-full theme-surface-ghost theme-text-muted"
@@ -32,7 +34,8 @@ export function MobileHeader({
         aria-label="Toggle theme"
       >
         {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-      </button>
+        </button>
+        </div>
     </div>
   );
 }
