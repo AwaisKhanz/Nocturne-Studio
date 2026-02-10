@@ -33,7 +33,7 @@ export function Toaster() {
             </div>
             <button
               onClick={() => dismiss(toast.id)}
-              className="absolute right-2 top-2 rounded-md p-1 theme-text-muted opacity-0 transition-opacity hover:theme-text-primary group-hover:opacity-100 focus:opacity-100 focus:outline-none focus:ring-2 theme-ring"
+              className="absolute right-2 top-2 rounded-md p-1 theme-text-muted transition-opacity hover:theme-text-primary focus:opacity-100 focus:outline-none focus:ring-2 theme-ring"
             >
               <X className="h-4 w-4" />
               <span className="sr-only">Close</span>
