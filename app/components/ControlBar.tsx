@@ -1,8 +1,9 @@
 "use client";
 
-import { Wand2 } from "lucide-react";
+import { Minus, Sparkles, Stars, Wand2, Zap, Plus } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -10,7 +11,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import type { ApiKeys } from "@/app/providers";
 
@@ -59,10 +59,18 @@ export function ControlBar({
   isGenerating: boolean;
   maxWidth: number;
 }) {
+  const modelIcons: Record<string, React.ReactNode> = {
+    "openai-gpt-image-1": <Sparkles className="h-4 w-4" />,
+    "gemini-2.5-flash-image": <Stars className="h-4 w-4" />,
+    "grok-imagine-image": <Zap className="h-4 w-4" />,
+  };
+
+  const selectedModel = models.find((m) => m.id === model);
+
   return (
-    <div className="pointer-events-none absolute inset-x-0 bottom-4 flex justify-center px-4 md:bottom-6">
+    <div className="pointer-events-none  absolute inset-x-0 bottom-4 flex justify-center px-4 md:bottom-6">
       <div
-        className="pointer-events-auto flex w-full flex-col items-stretch gap-2 rounded-2xl border theme-border theme-overlay px-3 py-2 theme-shadow-strong backdrop-blur-2xl md:flex-row md:items-center"
+        className="pointer-events-auto glass-panel flex w-full flex-col gap-4 rounded-2xl border theme-border theme-overlay px-5 py-4 "
         style={{ maxWidth }}
       >
         {!hasSupportedKey ? (
@@ -87,56 +95,71 @@ export function ControlBar({
             </Button>
           </div>
         ) : (
-          <>
+          <div className="flex items-start gap-2.5">
+            {/* Compact Model Selector - Icon Only */}
             <Select value={model} onValueChange={onModelChange}>
-              <SelectTrigger className="h-10 w-full md:w-[200px]">
-                <SelectValue placeholder="Select model" />
+              <SelectTrigger className="h-12 w-12 px-0 justify-center border-0 theme-surface-ghost shrink-0">
+                <SelectValue>
+                  <div className="flex items-center justify-center">
+                    {selectedModel && modelIcons[selectedModel.id]}
+                  </div>
+                </SelectValue>
               </SelectTrigger>
               <SelectContent>
                 {models.map((option) => (
                   <SelectItem key={option.id} value={option.id}>
-                    {option.label}
+                    <div className="flex items-center gap-2.5">
+                      {modelIcons[option.id] ?? <Sparkles className="h-4 w-4" />}
+                      <span>{option.label}</span>
+                    </div>
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
 
-            <div className="flex h-10 items-center justify-between gap-2 rounded-xl theme-surface-ghost px-2 py-1 text-sm md:justify-start">
+            {/* Compact Quantity Controls */}
+            <div className="flex items-center gap-1 rounded-lg theme-surface-ghost px-2 h-12 shrink-0">
               <button
                 onClick={onDecrement}
-                className="flex h-7 w-7 items-center justify-center rounded-lg theme-surface-ghost theme-text-primary"
+                disabled={count <= minCount}
+                className="flex h-7 w-7 items-center justify-center rounded-md theme-text-muted transition hover:theme-text-primary hover:bg-[color:var(--surface-hover)] disabled:opacity-40 disabled:cursor-not-allowed"
+                aria-label="Decrease quantity"
               >
-                -
+                <Minus className="h-3.5 w-3.5" />
               </button>
-              <span className="w-6 text-center text-sm theme-text-muted">
+              <span className="min-w-[1.5rem] text-center text-sm font-semibold theme-text-primary">
                 {count}
               </span>
               <button
                 onClick={onIncrement}
-                className="flex h-7 w-7 items-center justify-center rounded-lg theme-surface-ghost theme-text-primary"
+                disabled={count >= maxCount}
+                className="flex h-7 w-7 items-center justify-center rounded-md theme-text-muted transition hover:theme-text-primary hover:bg-[color:var(--surface-hover)] disabled:opacity-40 disabled:cursor-not-allowed"
+                aria-label="Increase quantity"
               >
-                +
+                <Plus className="h-3.5 w-3.5" />
               </button>
             </div>
 
+            {/* Prompt Input */}
             <Textarea
               ref={promptRef}
               value={prompt}
               onChange={(event) => onPromptChange(event.target.value)}
-              className="min-h-[40px] h-10 max-h-24 flex-1 resize-none md:min-w-[260px]"
+              className="min-h-[48px] h-12 max-h-32 flex-1 resize-none text-sm py-3"
               placeholder="Describe the image you want to create..."
             />
 
+            {/* Generate Button */}
             <Button
               onClick={onGenerate}
-              className={cn("pulse-glow h-10 px-5", isGenerating && "opacity-70")}
-              size="sm"
+              className={cn("pulse-glow h-12 px-6 font-semibold shrink-0", isGenerating && "opacity-70")}
+              size="default"
               disabled={isGenerating}
             >
               <Wand2 className="h-4 w-4" />
               Generate
             </Button>
-          </>
+          </div>
         )}
       </div>
     </div>
