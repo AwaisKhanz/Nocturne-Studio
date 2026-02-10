@@ -11,6 +11,7 @@ import { ControlBar } from "./components/ControlBar";
 import { ImageViewer } from "./components/ImageViewer";
 import { IntroOverlay } from "./components/IntroOverlay";
 import { ConfirmDialog } from "./components/ConfirmDialog";
+import { Toaster } from "@/components/ui/toaster";
 
 type ModelOption = {
   id: string;
@@ -149,7 +150,7 @@ export default function Home() {
   const [count, setCount] = useState<number>(4);
   const MIN_COUNT = 1;
   const MAX_COUNT = 20;
-  const [prompt, setPrompt] = useState<string>("A prism city in the midnight nebula");
+  const [prompt, setPrompt] = useState<string>("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [viewerTarget, setViewerTarget] = useState<ImageItem | null>(null);
   const [draftKeys, setDraftKeys] = useState<DraftKeys>({
@@ -647,6 +648,7 @@ export default function Home() {
         onConfirm={handleConfirmDeleteCluster}
         onCancel={() => setDeletePromptTarget(null)}
       />
+      <Toaster />
     </>
   );
 }

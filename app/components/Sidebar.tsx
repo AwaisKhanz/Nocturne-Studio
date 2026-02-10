@@ -16,6 +16,7 @@ import {
   Sun,
   Trash2,
 } from "lucide-react";
+import { toast } from "@/components/ui/use-toast";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -100,6 +101,22 @@ export function Sidebar({
     x: number;
     y: number;
   } | null>(null);
+
+  const handleSaveKeys = () => {
+    onSaveKeys();
+    toast({
+      title: "API keys saved",
+      description: "Your API keys have been saved successfully.",
+    });
+  };
+
+  const handleClearKeys = () => {
+    onClearKeys();
+    toast({
+      title: "API keys cleared",
+      description: "All API keys have been removed.",
+    });
+  };
 
   const handleStartRename = (session: Session) => {
     setRenameTarget(session);
@@ -326,12 +343,12 @@ export function Sidebar({
                 </div>
               </div>
               <DialogFooter className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-between">
-                <Button variant="ghost" onClick={onClearKeys}>
+                <Button variant="ghost" onClick={handleClearKeys}>
                   <Trash2 className="h-4 w-4" />
                   Clear All
                 </Button>
                 <div className="flex gap-2">
-                  <Button variant="outline" onClick={onSaveKeys}>
+                  <Button variant="outline" onClick={handleSaveKeys}>
                     Save Keys
                   </Button>
                   <DialogClose asChild>
